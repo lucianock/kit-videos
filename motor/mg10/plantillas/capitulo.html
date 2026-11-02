@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  #r { position: absolute; left: 40px; top: 40px; padding: 14px 30px 15px 24px; overflow: hidden;
+       display: flex; align-items: center; gap: 16px; }
+  .barra { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--cian);
+           box-shadow: 0 0 14px var(--cian), 0 0 32px rgba(0, 251, 255, 0.4); transform-origin: 50% 100%; }
+  .num { font-size: 22px; color: var(--cian); font-weight: 600; letter-spacing: 0.1em; }
+  .sep { width: 26px; height: 1px; background: rgba(0, 251, 255, 0.6); transform-origin: 0 50%; }
+  .titulo { font-size: 36px; font-weight: 640; letter-spacing: -0.01em; white-space: nowrap; line-height: 1.05; }
+  .brillo { position: absolute; top: -40%; bottom: -40%; width: 120px; left: 0;
+            background: linear-gradient(100deg, transparent 0%, rgba(160, 255, 255, 0.10) 45%,
+                        rgba(220, 255, 255, 0.16) 50%, rgba(160, 255, 255, 0.10) 55%, transparent 100%);
+            transform: translateX(-160px) skewX(-18deg); pointer-events: none; }
+</style></head>
+<body>
+<div id="r" class="vidrio">
+  <div class="barra"></div>
+  <span class="num mono"></span><span class="sep"></span><span class="titulo"></span>
+  <div class="brillo"></div>
+</div>
+<script src="../node_modules/animejs/dist/bundles/anime.umd.min.js"></script>
+<script src="base.js"></script>
+<script>
+// Capítulo del recorrido: número que se decodifica, título letra por letra y un brillo. Compacto: va abajo a la
+// izquierda (arriba de los subtítulos), sin tapar el menú ni las pestañas. El ancla es la esquina de abajo a la
+// izquierda de la tarjeta. p: numero, titulo, dur (s).
+window.construir = function (p) {
+  const dur = (p.dur || 2.3) * 1000;
+  const r = document.getElementById('r');
+  if (p.opaco) { r.style.background = 'rgba(6, 10, 15, 0.96)'; r.style.border = '1px solid rgba(0, 251, 255, 0.3)'; }
+  const num = r.querySelector('.num'), sep = r.querySelector('.sep');
+  r.querySelector('.titulo').textContent = p.titulo || '';
+  const letras = H.partir(r.querySelector('.titulo'), 'letras');
+  num.textContent = p.numero || '';
+  const caja = r.getBoundingClientRect();
+  r.style.width = caja.width + 'px';
+  anime.utils.set(r, { opacity: 0, clipPath: 'inset(0% 100% 0% 0% round 16px)', translateX: -20 });
+  anime.utils.set(r.querySelector('.barra'), { scaleY: 0 });
+  anime.utils.set(sep, { scaleX: 0 });
+  anime.utils.set(letras, { translateY: '108%', opacity: 0, filter: 'blur(0px)' });
+  anime.utils.set(r.querySelector('.brillo'), { translateX: -160 });
+  const tl = anime.createTimeline({ autoplay: false, defaults: { ease: 'outExpo' } });
+  tl.add(r, { clipPath: { from: 'inset(0% 100% 0% 0% round 16px)', to: 'inset(0% 0% 0% 0% round 16px)' },
+              duration: 640 }, 0)
+    .add(r, { opacity: { from: 0, to: 1 }, duration: 140, ease: 'linear' }, 0)
+    .add(r, { translateX: { from: -20, to: 0 }, duration: 760 }, 0)
+    .add(r.querySelector('.barra'), { scaleY: { from: 0, to: 1 }, duration: 600,
+                                      ease: anime.spring({ bounce: 0.25, duration: 600 }) }, 40)
+    .add(sep, { scaleX: { from: 0, to: 1 }, duration: 520 }, 200)
+    .add(letras, { translateY: { from: '108%', to: '0%' }, filter: { from: 'blur(0px)', to: 'blur(0px)' },
+                   opacity: { from: 0, to: 1 }, duration: 640, delay: anime.stagger(22) }, 160)
+    .add(r.querySelector('.brillo'), { translateX: { from: -160, to: caja.width + 60 }, duration: 900,
+                                       ease: 'inOutSine' }, 420);
+  const sal = Math.max(900, dur - 400);
+  tl.add(r, { translateX: { to: -26 }, opacity: { to: 0 }, filter: { from: 'blur(0px)', to: 'blur(0px)' },
+              duration: 380, ease: 'inQuad' }, sal);
+  return {
+    tl, dur, ancho: caja.right + 40, alto: caja.bottom + 40, ancla: [caja.left, caja.bottom],
+    alTiempo(ms) {
+      num.textContent = H.decodificar(p.numero || '', H.lim((ms - 80) / 360), 5, '0123456789');
+    },
+  };
+};
+</script>
+</body></html>

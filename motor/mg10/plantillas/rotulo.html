@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  #r { position: absolute; left: 60px; top: 50px; padding: 26px 44px 28px 38px; min-width: 520px; overflow: hidden; }
+  .barra { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--cian);
+           box-shadow: 0 0 18px var(--cian), 0 0 42px rgba(0, 251, 255, 0.45); transform-origin: 50% 0; }
+  .cab { display: flex; align-items: center; gap: 14px; font-size: 17px; letter-spacing: 0.32em; color: var(--cian);
+         font-weight: 500; height: 22px; }
+  .num { color: var(--cian); font-weight: 600; letter-spacing: 0.08em; }
+  .sep { width: 34px; height: 1px; background: rgba(0, 251, 255, 0.6); transform-origin: 0 50%; }
+  .kicker { color: #9fdfe6; white-space: pre; }
+  .titulo { font-size: 72px; font-weight: 640; letter-spacing: -0.02em; line-height: 1.02; margin-top: 12px;
+            white-space: nowrap; }
+  .bajada { font-size: 27px; color: var(--texto-2); margin-top: 10px; font-weight: 420; white-space: nowrap; }
+  .brillo { position: absolute; top: -40%; bottom: -40%; width: 160px; left: 0;
+            background: linear-gradient(100deg, transparent 0%, rgba(160, 255, 255, 0.10) 45%,
+                        rgba(220, 255, 255, 0.16) 50%, rgba(160, 255, 255, 0.10) 55%, transparent 100%);
+            transform: translateX(-200px) skewX(-18deg); pointer-events: none; }
+</style></head>
+<body>
+<div id="r" class="vidrio">
+  <div class="barra"></div>
+  <div class="cab"><span class="num mono"></span><span class="sep"></span><span class="kicker mono"></span></div>
+  <div class="titulo"></div>
+  <div class="bajada"></div>
+  <div class="brillo"></div>
+</div>
+<script src="../node_modules/animejs/dist/bundles/anime.umd.min.js"></script>
+<script src="base.js"></script>
+<script>
+// Título de sección: número y antetítulo que se «decodifican», el título letra por letra desde una máscara, la
+// bajada palabra por palabra y un brillo que cruza la tarjeta. p: numero, kicker, titulo, bajada, dur (s).
+window.construir = function (p) {
+  const dur = (p.dur || 3.2) * 1000;
+  const PAD = 60;
+  const r = document.getElementById('r');
+  const num = r.querySelector('.num'), kicker = r.querySelector('.kicker');
+  r.querySelector('.titulo').textContent = p.titulo || '';
+  const baj = r.querySelector('.bajada');
+  if (p.bajada) baj.textContent = p.bajada; else baj.remove();
+  const sep = r.querySelector('.sep');
+  if (!p.numero) { num.remove(); sep.remove(); }
+  kicker.textContent = p.kicker || '';
+  const letras = H.partir(r.querySelector('.titulo'), 'letras');
+  const pals = p.bajada ? H.partir(baj, 'palabras') : [];
+  const caja = r.getBoundingClientRect();
+  r.style.width = caja.width + 'px';
+  const ancho = caja.right + PAD, alto = caja.bottom + PAD;
+  // estados iniciales explícitos: en una línea de tiempo en pausa, lo que todavía no empezó no aplica su «from»
+  anime.utils.set(r, { opacity: 0, clipPath: 'inset(0% 100% 0% 0% round 16px)', translateX: -26 });
+  anime.utils.set(r.querySelector('.barra'), { scaleY: 0 });
+  if (p.numero) anime.utils.set(sep, { scaleX: 0 });
+  anime.utils.set(letras, { translateY: '108%', opacity: 0, filter: 'blur(0px)' });
+  if (pals.length) anime.utils.set(pals, { translateY: 22, opacity: 0, filter: 'blur(0px)' });
+  anime.utils.set(r.querySelector('.brillo'), { translateX: -220 });
+  const tl = anime.createTimeline({ autoplay: false, defaults: { ease: 'outExpo' } });
+  tl.add(r, { clipPath: { from: 'inset(0% 100% 0% 0% round 16px)', to: 'inset(0% 0% 0% 0% round 16px)' },
+              duration: 760 }, 0)
+    .add(r, { opacity: { from: 0, to: 1 }, duration: 160, ease: 'linear' }, 0)
+    .add(r, { translateX: { from: -26, to: 0 }, duration: 900 }, 0)
+    .add(r.querySelector('.barra'), { scaleY: { from: 0, to: 1 }, duration: 700,
+                                      ease: anime.spring({ bounce: 0.25, duration: 700 }) }, 60);
+  if (p.numero) tl.add(sep, { scaleX: { from: 0, to: 1 }, duration: 600 }, 260);
+  tl.add(letras, { translateY: { from: '108%', to: '0%' }, filter: { from: 'blur(0px)', to: 'blur(0px)' },
+                   opacity: { from: 0, to: 1 }, duration: 760, delay: anime.stagger(26) }, 200);
+  if (pals.length) tl.add(pals, { translateY: { from: 22, to: 0 }, opacity: { from: 0, to: 1 },
+                                  filter: { from: 'blur(0px)', to: 'blur(0px)' }, duration: 700,
+                                  delay: anime.stagger(42) }, 470);
+  tl.add(r.querySelector('.brillo'), { translateX: { from: -220, to: caja.width + 80 }, duration: 1100,
+                                       ease: 'inOutSine' }, 520);
+  const sal = Math.max(1600, dur - 480);
+  tl.add(r, { translateX: { to: -34 }, opacity: { to: 0 }, filter: { from: 'blur(0px)', to: 'blur(0px)' },
+              duration: 420, ease: 'inQuad' }, sal);
+  return {
+    tl, dur, ancho, alto, ancla: [caja.left, caja.top],
+    alTiempo(ms) {
+      kicker.textContent = H.decodificar(p.kicker || '', H.lim((ms - 140) / 620), 7);
+      if (p.numero) num.textContent = H.decodificar(p.numero, H.lim((ms - 90) / 380), 3, '0123456789');
+    },
+  };
+};
+</script>
+</body></html>

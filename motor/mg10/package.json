@@ -1,0 +1,10 @@
+{
+  "name": "kit-videos-mg",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Motion graphics del kit: plantillas HTML/CSS/SVG animadas con anime.js, filmadas cuadro a cuadro con Chrome sin cabeza (mg10.py).",
+  "license": "MIT",
+  "dependencies": {
+    "animejs": "4.5.0"
+  }
+}

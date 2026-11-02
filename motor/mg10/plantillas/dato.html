@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  #d { position: absolute; left: 60px; top: 50px; padding: 30px 48px 34px 42px; overflow: hidden; }
+  .barra { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--cian);
+           box-shadow: 0 0 18px var(--cian), 0 0 42px rgba(0, 251, 255, 0.45); transform-origin: 50% 100%; }
+  .eti { font-size: 20px; letter-spacing: 0.34em; color: var(--cian); font-weight: 560; white-space: pre; }
+  .num { font-size: 150px; font-weight: 700; line-height: 1; margin-top: 8px; letter-spacing: -0.03em; white-space: pre;
+         color: #ffffff; text-shadow: 0 0 34px rgba(0, 251, 255, 0.35), 0 0 2px rgba(0, 251, 255, 0.6); }
+  .det { font-size: 28px; color: var(--texto-2); margin-top: 12px; font-weight: 430; white-space: nowrap; }
+</style></head>
+<body>
+<div id="d" class="vidrio">
+  <div class="barra"></div>
+  <div class="eti mono"></div>
+  <div class="num mono"></div>
+  <div class="det"></div>
+</div>
+<script src="../node_modules/animejs/dist/bundles/anime.umd.min.js"></script>
+<script src="base.js"></script>
+<script>
+// Dato grande: etiqueta que se decodifica, un número que cuenta (expo-out) y un detalle palabra por palabra.
+// p: valor, desde, etiqueta, detalle, formato ('miles' | 'raw'), sufijo, conteo (ms), dur (s).
+window.construir = function (p) {
+  const dur = (p.dur || 3.0) * 1000;
+  const d = document.getElementById('d');
+  const eti = d.querySelector('.eti'), num = d.querySelector('.num'), det = d.querySelector('.det');
+  const fmt = (v) => (p.formato === 'raw' ? String(Math.round(v)) : H.miles(v)) + (p.sufijo || '');
+  num.textContent = fmt(p.valor);
+  if (p.detalle) det.textContent = p.detalle; else det.remove();
+  eti.textContent = p.etiqueta || '';
+  if (p.eti_tam) eti.style.fontSize = p.eti_tam + 'px';
+  const pals = p.detalle ? H.partir(det, 'palabras') : [];
+  const caja = d.getBoundingClientRect();
+  d.style.width = caja.width + 'px';
+  const PAD = 60;
+  anime.utils.set(d, { opacity: 0, clipPath: 'inset(100% 0% 0% 0% round 16px)', translateY: 26 });
+  anime.utils.set(d.querySelector('.barra'), { scaleY: 0 });
+  anime.utils.set(num, { scale: 0.92, filter: 'blur(0px)' });
+  if (pals.length) anime.utils.set(pals, { translateY: 22, opacity: 0 });
+  const tl = anime.createTimeline({ autoplay: false, defaults: { ease: 'outExpo' } });
+  const conteo = p.conteo || 1300, desde = p.desde || 0;
+  // rapido: todo entra en un cuarto del tiempo (una tarjeta que dura un segundo: el número se lee a los 0,3 s)
+  const k = p.rapido ? 0.25 : 1;
+  const t0c = 200 * k;
+  tl.add(d, { clipPath: { from: 'inset(100% 0% 0% 0% round 16px)', to: 'inset(0% 0% 0% 0% round 16px)' },
+              duration: 700 * k }, 0)
+    .add(d, { opacity: { from: 0, to: 1 }, duration: 160 * k, ease: 'linear' }, 0)
+    .add(d, { translateY: { from: 26, to: 0 }, duration: 900 * k }, 0)
+    .add(d.querySelector('.barra'), { scaleY: { from: 0, to: 1 }, duration: 700 * k,
+                                      ease: anime.spring({ bounce: 0.3, duration: 700 * k }) }, 80 * k)
+    .add(num, { scale: { from: 0.92, to: 1 }, filter: { from: 'blur(0px)', to: 'blur(0px)' }, duration: 900 * k }, 150 * k);
+  if (pals.length) tl.add(pals, { translateY: { from: 22, to: 0 }, opacity: { from: 0, to: 1 }, duration: 650 * k,
+                                  delay: anime.stagger(40 * k) }, t0c + 60 * k + conteo * 0.5);
+  // sin_salida: se corta con el latigazo que viene (la tarjeta queda entera hasta el último cuadro)
+  const sal = Math.max(p.sin_salida ? 1e9 : 1500, dur - 450);
+  if (!p.sin_salida) tl.add(d, { translateY: { to: -20 }, opacity: { to: 0 }, filter: { from: 'blur(0px)', to: 'blur(0px)' },
+              duration: 420, ease: 'inQuad' }, sal);
+  return {
+    tl, dur, ancho: caja.right + PAD, alto: caja.bottom + PAD, ancla: [caja.left, caja.top],
+    marcas: { llega: (t0c + conteo * 0.6) / 1000 },
+    alTiempo(ms) {
+      num.textContent = fmt(desde + (p.valor - desde) * H.expoOut(H.lim((ms - t0c) / conteo)));
+      eti.textContent = H.decodificar(p.etiqueta || '', H.lim((ms - 60 * k) / (520 * k)), 11);
+    },
+  };
+};
+</script>
+</body></html>

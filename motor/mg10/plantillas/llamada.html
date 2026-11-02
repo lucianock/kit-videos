@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="base.css">
+<style>
+  svg { position: absolute; left: 0; top: 0; overflow: visible; }
+  #etq { position: absolute; padding: 18px 30px 20px 26px; border-radius: 16px; white-space: nowrap; }
+  #etq::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 3px;
+                 background: var(--cian); box-shadow: 0 0 14px var(--cian); }
+  .t1 { font-size: 44px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.22; }
+  .grande .t1 { font-size: 60px; font-weight: 680; }
+  .chica .t1 { font-size: 36px; }
+  .t1 b { color: var(--cian); font-weight: 700; }
+  .t2 { font-size: 30px; color: var(--texto-2); margin-top: 6px; font-weight: 480; line-height: 1.22; }
+  .grande .t2 { font-size: 34px; }
+  .chica .t2 { font-size: 26px; }
+</style></head>
+<body>
+<svg id="s" xmlns="http://www.w3.org/2000/svg">
+  <defs><filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter></defs>
+  <path id="halo" fill="none" stroke="#00fbff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+        opacity="0.5" filter="url(#g)"/>
+  <path id="linea" fill="none" stroke="#00fbff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle id="a1" fill="none" stroke="#00fbff" stroke-width="2"/>
+  <circle id="a2" fill="none" stroke="#00fbff" stroke-width="2"/>
+  <circle id="pt" fill="#00fbff"/>
+  <circle id="pc" fill="#eaffff"/>
+</svg>
+<div id="etq" class="vidrio"><div class="t1"></div><div class="t2"></div></div>
+<script src="../node_modules/animejs/dist/bundles/anime.umd.min.js"></script>
+<script src="base.js"></script>
+<script>
+// Llamada: un punto con anillos sobre el elemento (el ancla del sprite), una línea con codo a 45° que se dibuja y una
+// etiqueta que aparece palabra por palabra. p: texto (admite <b>), detalle, dir ('der-arriba', 'der-abajo',
+// 'izq-arriba', 'izq-abajo'), codo, largo (px), dur (s).
+window.construir = function (p) {
+  const dur = (p.dur || 3.0) * 1000;
+  const dir = p.dir || 'der-arriba';
+  const sx = dir.startsWith('izq') ? -1 : 1, sy = dir.endsWith('abajo') ? 1 : -1;
+  const codo = p.codo == null ? 70 : p.codo, largo = p.largo == null ? 120 : p.largo;
+  const etq = document.getElementById('etq');
+  if (p.tam) etq.classList.add(p.tam);
+  const t1 = etq.querySelector('.t1'), t2 = etq.querySelector('.t2');
+  t1.innerHTML = p.texto || '';
+  if (p.detalle) t2.textContent = p.detalle; else t2.remove();
+  const pals = [];
+  for (const nodo of [t1, t2]) {
+    if (!nodo.isConnected) continue;
+    const partes = Array.from(nodo.childNodes);
+    nodo.innerHTML = '';
+    for (const n of partes) {
+      const esB = n.nodeType === 1;
+      for (const w of n.textContent.split(/(\s+)/)) {
+        if (!w) continue;
+        if (/^\s+$/.test(w)) { nodo.appendChild(document.createTextNode(w)); continue; }
+        const m = document.createElement('span'); m.className = 'mascara';
+        const s = document.createElement(esB ? 'b' : 'span'); s.className = 'pal'; s.textContent = w;
+        m.appendChild(s); nodo.appendChild(m); pals.push(s);
+      }
+    }
+  }
+  const eb = etq.getBoundingClientRect();
+  const M = 70;
+  const ex = sx * (codo + largo), ey = sy * codo;
+  let ax, lx;
+  if (sx > 0) { ax = M; lx = ax + ex + 10; } else { lx = M; ax = lx + eb.width + 10 - ex; }
+  let ay = M + Math.max(0, -ey) + Math.max(0, eb.height / 2 + ey * (sy < 0 ? 1 : 0));
+  ay = Math.max(ay, M + (sy < 0 ? codo + eb.height / 2 : 0));
+  let ly = ay + ey - eb.height / 2;
+  if (ly < M / 2) { const d = M / 2 - ly; ay += d; ly += d; }
+  etq.style.left = lx + 'px'; etq.style.top = ly + 'px';
+  const ancho = Math.max(ax + M, lx + eb.width + M), alto = Math.max(ay + M, ly + eb.height + M / 2);
+  const s = document.getElementById('s');
+  s.setAttribute('width', ancho); s.setAttribute('height', alto);
+  const d = `M ${ax} ${ay} L ${ax + sx * codo} ${ay + ey} L ${ax + ex} ${ay + ey}`;
+  const L = codo * Math.SQRT2 + largo;
+  const lineas = ['linea', 'halo'].map((id) => document.getElementById(id));
+  for (const el of lineas) { el.setAttribute('d', d); el.style.strokeDasharray = L + ' ' + (L + 10); }
+  const pt = document.getElementById('pt'), pc = document.getElementById('pc');
+  const a1 = document.getElementById('a1'), a2 = document.getElementById('a2');
+  for (const c of [pt, pc, a1, a2]) { c.setAttribute('cx', ax); c.setAttribute('cy', ay); }
+  anime.utils.set(etq, { opacity: 0, translateX: sx * -18, scale: 0.96 });
+  anime.utils.set(pals, { translateY: '100%', opacity: 0 });
+  const tl = anime.createTimeline({ autoplay: false, defaults: { ease: 'outExpo' } });
+  const est = { r: 0, rc: 0, linea: L, sal: 0 };
+  // rapido: todo entra en la mitad del tiempo (para una llamada corta: la etiqueta se lee a los 0,3 s)
+  const k = p.rapido ? 0.5 : 1;
+  tl.add(est, { r: { from: 0, to: 7.5 }, rc: { from: 0, to: 3 }, duration: 520 * k,
+                ease: anime.spring({ bounce: 0.45, duration: 520 * k }) }, 0)
+    .add(est, { linea: { from: L, to: 0 }, duration: 560 * k, ease: 'inOutCubic' }, 160 * k)
+    .add(etq, { opacity: { from: 0, to: 1 }, duration: 220 * k, ease: 'linear' }, 560 * k)
+    .add(etq, { translateX: { from: sx * -18, to: 0 }, scale: { from: 0.96, to: 1 }, duration: 700 * k }, 560 * k)
+    .add(pals, { translateY: { from: '100%', to: '0%' }, opacity: { from: 0, to: 1 }, duration: 520 * k,
+                 delay: anime.stagger(26 * k) }, 580 * k);
+  const sal = Math.max(p.rapido ? 600 : 1500, dur - 420);
+  tl.add(etq, { opacity: { to: 0 }, translateX: { to: sx * 14 }, filter: { from: 'blur(0px)', to: 'blur(0px)' },
+                duration: 320, ease: 'inQuad' }, sal)
+    .add(est, { sal: { from: 0, to: 1 }, duration: 380, ease: 'inQuad' }, sal + 60);
+  return {
+    tl, dur, ancho, alto, ancla: [ax, ay],
+    alTiempo(ms) {
+      for (const el of lineas) el.style.strokeDashoffset = est.sal > 0 ? -est.sal * L : est.linea;
+      const k = 1 - est.sal;
+      pt.setAttribute('r', Math.max(0, est.r * k));
+      pc.setAttribute('r', Math.max(0, est.rc * k));
+      [a1, a2].forEach((a, i) => {
+        const t = ms - 300 - i * 600;
+        const q = ((t % 1200) + 1200) % 1200 / 1200;
+        a.setAttribute('r', 8 + 26 * H.expoOut(q));
+        a.setAttribute('opacity', (t > 0 ? 1 : 0) * (1 - q) * 0.8 * k);
+      });
+    },
+  };
+};
+</script>
+</body></html>

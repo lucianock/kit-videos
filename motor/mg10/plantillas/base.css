@@ -1,0 +1,25 @@
+/* mg10 · estilos comunes: la letra y los colores (cambiá --cian por el color de tu marca). */
+@font-face { font-family: 'Geist'; src: url('../../fuentes/Geist-Variable.woff2') format('woff2'); font-weight: 100 900; }
+@font-face { font-family: 'Geist Mono'; src: url('../../fuentes/GeistMono-Variable.woff2') format('woff2'); font-weight: 100 900; }
+:root {
+  --cian: #00fbff;
+  --cian-suave: rgba(0, 251, 255, 0.55);
+  --texto: #f3f7f9;
+  --texto-2: #b9c7d4;
+  --gris: #8496aa;
+  --noche: #03060b;
+  --vidrio: rgba(4, 9, 15, 0.86);
+  --borde: rgba(120, 170, 200, 0.16);
+  --rojo: #ff5d6c;
+  --verde: #3ddc97;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+body { font-family: 'Geist', system-ui, sans-serif; color: var(--texto); -webkit-font-smoothing: antialiased;
+       text-rendering: geometricPrecision; font-kerning: normal; }
+.mono { font-family: 'Geist Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.mascara { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0.08em 0.02em 0.12em; margin: -0.08em -0.02em -0.12em; }
+.letra, .pal { display: inline-block; will-change: transform, opacity, filter; white-space: pre; }
+.vidrio { background: linear-gradient(180deg, rgb(9, 16, 25), rgb(4, 9, 15));
+          border: 1px solid var(--borde); border-radius: 16px;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 255, 255, 0.03) inset; }

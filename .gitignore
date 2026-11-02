@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+cache/
+motor/mg10/cache/
+motor/mg10/node_modules/
+ejemplo/pantallas/
+ejemplo/vistas/
+*.mp4
+*.wav
+videos/*/pantallas/
+videos/*/vistas/

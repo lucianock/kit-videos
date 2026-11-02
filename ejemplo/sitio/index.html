@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Ventas · Tienda Demo</title>
+<link rel="stylesheet" href="estilo.css"></head>
+<body>
+<header><div class="marca"><span class="logo">◆</span> TIENDA DEMO <small>Panel de ventas</small></div>
+  <div class="usuario">Equipo comercial</div></header>
+<aside><nav>
+  <a class="activo" href="index.html">Inicio</a><a href="pedidos.html">Pedidos</a><a href="#">Clientes</a>
+  <a href="#">Productos</a><a href="#">Reportes</a><a href="#">Configuración</a>
+</nav></aside>
+<main>
+  <p class="ante">RESUMEN</p><h1>Ventas de un vistazo</h1>
+  <section class="kpis">
+    <article id="kpi-hoy"><h3>Ventas de hoy</h3><p class="num">$ 482.300</p><p class="var sube">+18 % vs. ayer</p></article>
+    <article id="kpi-mes"><h3>Ventas del mes</h3><p class="num">$ 9.874.100</p><p class="var sube">+7 % vs. el mes pasado</p></article>
+    <article id="kpi-anio"><h3>Total del año</h3><p class="num">$ 88.215.600</p><p class="var">Meta anual: 92 %</p></article>
+    <article id="kpi-pedidos"><h3>Pedidos abiertos</h3><p class="num">37</p><p class="var baja">5 demorados</p></article>
+  </section>
+  <section class="grafico"><h2>Ventas por día</h2><p class="sub">Últimos 30 días</p>
+    <svg viewBox="0 0 1000 260" preserveAspectRatio="none">
+      <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffb547" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#ffb547" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0,200 L35,190 L70,196 L105,170 L140,176 L175,150 L210,160 L245,140 L280,148 L315,120 L350,132 L385,110 L420,126 L455,100 L490,112 L525,96 L560,104 L595,80 L630,92 L665,70 L700,86 L735,64 L770,74 L805,58 L840,66 L875,44 L910,52 L945,30 L1000,40 L1000,260 L0,260 Z" fill="url(#g)"/>
+      <path d="M0,200 L35,190 L70,196 L105,170 L140,176 L175,150 L210,160 L245,140 L280,148 L315,120 L350,132 L385,110 L420,126 L455,100 L490,112 L525,96 L560,104 L595,80 L630,92 L665,70 L700,86 L735,64 L770,74 L805,58 L840,66 L875,44 L910,52 L945,30 L1000,40" fill="none" stroke="#ffb547" stroke-width="3"/>
+    </svg></section>
+  <section class="dos">
+    <div><h2>Lo más vendido</h2><ol>
+      <li><span>Medialunas x12</span><b>1.240</b></li><li><span>Pan de campo</span><b>980</b></li>
+      <li><span>Torta de chocolate</span><b>412</b></li><li><span>Alfajores x6</span><b>386</b></li></ol></div>
+    <div><h2>Sucursales</h2><ol>
+      <li><span>Centro</span><b>$ 3,9 M</b></li><li><span>Norte</span><b>$ 2,7 M</b></li>
+      <li><span>Costa</span><b>$ 1,8 M</b></li><li><span>Online</span><b>$ 1,4 M</b></li></ol></div>
+  </section>
+</main>
+</body></html>
